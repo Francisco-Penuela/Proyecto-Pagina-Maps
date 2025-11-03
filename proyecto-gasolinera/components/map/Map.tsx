@@ -22,14 +22,28 @@ const DirectionsRenderer = ({ directions }: { directions: google.maps.Directions
     if (!map) return;
 
     if (!rendererRef.current) {
-      rendererRef.current = new google.maps.DirectionsRenderer({ map });
+      rendererRef.current = new google.maps.DirectionsRenderer({
+        suppressMarkers: false,
+        preserveViewport: true,
+      });
     }
-    
-    rendererRef.current.setDirections(directions || null);
+
+    if (!directions || typeof directions !== 'object' || !('routes' in directions)) {
+      rendererRef.current.setMap(null); // limpia el mapa si no hay ruta válida
+      return;
+    }
+
+    rendererRef.current.setMap(map); // asegura que el renderer esté en el mapa
+    rendererRef.current.setDirections(directions);
+
+    return () => {
+      rendererRef.current?.setMap(null);
+    };
   }, [map, directions]);
 
   return null;
 };
+
 
 // NOTICE: NO APIPROVIDER WRAPPER HERE!
 const MapComponent = ({ userLocation, stations, onMarkerClick, directions, selectedStation }: MapProps) => {
